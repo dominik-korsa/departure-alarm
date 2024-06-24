@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import eu.dkgl.departurealarm.ui.theme.DepartureAlarmTheme
+import eu.dkgl.departurealarm.viewmodel.PlannedDepartureViewModel
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -32,14 +34,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val plannedDepartureViewModel: PlannedDepartureViewModel by viewModels()
             val timePickerState = rememberTimePickerState()
 
             DepartureAlarmTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
-                        AlarmPicker(
-                            timePickerState,
-                        )
+                        Column {
+                            AlarmPicker(
+                                timePickerState,
+                            )
+                            Text(text = plannedDepartureViewModel.allDepartures.value?.map { it.id }?.joinToString(", ") ?: "?")
+                        }
                     }
                 }
             }
@@ -60,8 +66,8 @@ fun AlarmPicker(state: TimePickerState) {
         )
         Button(onClick = {
             // TODO: This is a bad place for this
-            val alarmManager = MyAlarmManager(context)
-            alarmManager.createAlarm(Instant.now() + (AlarmType.Prepare.timeBeforeDeparture + 5.seconds).toJavaDuration())
+            val alarmList = AlarmList(context)
+            alarmList.createAlarm(Instant.now() + (AlarmType.Prepare.timeBeforeDeparture + 5.seconds).toJavaDuration())
         }) {
             Text(text = "Add alarm")
         }
