@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != "android.intent.action.BOOT_COMPLETED") return
+        if (!setOf("android.intent.action.BOOT_COMPLETED", "android.intent.action.MY_PACKAGE_REPLACED").contains(intent.action)) return
 
         val alarmManager = AlarmManager(context)
         val database = AppDatabase.getDatabase(context)
