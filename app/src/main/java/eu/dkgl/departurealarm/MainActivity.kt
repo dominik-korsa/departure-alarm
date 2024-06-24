@@ -3,7 +3,6 @@
 package eu.dkgl.departurealarm
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -24,6 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import eu.dkgl.departurealarm.ui.theme.DepartureAlarmTheme
+import java.time.Instant
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,10 +59,9 @@ fun AlarmPicker(state: TimePickerState) {
             state,
         )
         Button(onClick = {
-            Toast.makeText(context, "Add alarm pressed", Toast.LENGTH_SHORT).show()
             // TODO: This is a bad place for this
             val alarmManager = MyAlarmManager(context)
-            alarmManager.installAlarms()
+            alarmManager.createAlarm(Instant.now() + (AlarmType.Prepare.time() + 5.seconds).toJavaDuration())
         }) {
             Text(text = "Add alarm")
         }

@@ -8,11 +8,18 @@ import android.os.Build
 import android.widget.Toast
 import eu.dkgl.departurealarm.receiver.AlarmReceiver
 import java.time.Instant
-import kotlin.time.Duration.Companion.seconds
+import kotlin.random.Random
 import kotlin.time.toJavaDuration
 
 class MyAlarmManager(private val context: Context) {
+
     private var alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    fun createAlarm(departureTime: Instant) {
+        // TODO: Store
+        val info = AlarmInfo(Random.nextInt(), departureTime)
+        installAlarm(info)
+    }
 
     fun installAlarms() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
@@ -20,21 +27,30 @@ class MyAlarmManager(private val context: Context) {
             return
         }
 
-        val intent = Intent(context, AlarmReceiver::class.java)
+        // TODO: Install all stored alarms
+    }
+
+    private fun installAlarmType(info: AlarmInfo, type: AlarmType) {
+        val intentId = (info.id to type).hashCode()
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            putExtra(AlarmReceiver.EXTRA_TYPE, type.name)
+        }
+
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            2137,
+            intentId,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
         )
 
-        val alarmTime = Instant.now() + 20.seconds.toJavaDuration()
-//        val info = AlarmClockInfo(alarmTime.toEpochMilli(), pendingIntent)
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            alarmTime.toEpochMilli(),
-            pendingIntent,
-        )
-        Toast.makeText(context, "Scheduled...", Toast.LENGTH_LONG).show()
+        val alarmTime = info.departureTime - type.time().toJavaDuration()
+        val alarmInfo = AlarmManager.AlarmClockInfo(alarmTime.toEpochMilli(), pendingIntent)
+        alarmManager.setAlarmClock(alarmInfo, pendingIntent)
+    }
+
+    private fun installAlarm(info: AlarmInfo) {
+        installAlarmType(info, AlarmType.Prepare)
+        installAlarmType(info, AlarmType.Whistle)
+        installAlarmType(info, AlarmType.Departure)
     }
 }
