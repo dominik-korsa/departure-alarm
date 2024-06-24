@@ -12,12 +12,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -31,10 +34,13 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import eu.dkgl.departurealarm.entity.Event
 import eu.dkgl.departurealarm.ui.theme.DepartureAlarmTheme
 import eu.dkgl.departurealarm.viewmodel.EventViewModel
+import me.saket.swipe.SwipeAction
+import me.saket.swipe.SwipeableActionsBox
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -54,7 +60,6 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
                         Column {
-                            Text(text = events.map { it.departureTimeMillis }.joinToString(", "))
                             AlarmPicker(eventViewModel)
                             LazyColumn {
                                 items(events) { departure ->
@@ -75,6 +80,7 @@ class MainActivity : ComponentActivity() {
 fun AlarmPicker(eventViewModel: EventViewModel) {
     val timePickerState = rememberTimePickerState()
     Column(
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         TimePicker(timePickerState)
@@ -94,16 +100,25 @@ fun AlarmPicker(eventViewModel: EventViewModel) {
 fun DepartureItem(item: Event, onDelete: () -> Unit) {
     val time = Instant.ofEpochMilli(item.departureTimeMillis).atZone(ZoneId.systemDefault())
 
-    Row {
-        Box {
-            VerticalDivider(thickness = 1.dp)
-            Box(
-                Modifier.width(8.dp).height(8.dp).background(Color.Red, shape = CircleShape)
-            )
-        }
-        Text(text = time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)))
-        Button(onClick = onDelete) {
-            Text(text = "Delete")
+    val deleteAction = SwipeAction(
+        icon = rememberVectorPainter(Icons.TwoTone.Delete),
+        background = Color.Red,
+        onSwipe = onDelete
+    )
+
+    SwipeableActionsBox(
+        modifier = Modifier.fillMaxWidth(),
+        startActions = listOf(deleteAction),
+        endActions = listOf(deleteAction),
+    ) {
+        Row(Modifier.fillMaxWidth()) {
+            Box {
+                VerticalDivider(thickness = 1.dp)
+                Box(
+                    Modifier.width(8.dp).height(8.dp).background(Color.Red, shape = CircleShape)
+                )
+            }
+            Text(text = time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)))
         }
     }
 }
