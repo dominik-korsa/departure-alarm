@@ -61,7 +61,7 @@ fun AlarmPicker(state: TimePickerState) {
         Button(onClick = {
             // TODO: This is a bad place for this
             val alarmManager = MyAlarmManager(context)
-            alarmManager.createAlarm(Instant.now() + (AlarmType.Prepare.time() + 5.seconds).toJavaDuration())
+            alarmManager.createAlarm(Instant.now() + (AlarmType.Prepare.timeBeforeDeparture + 5.seconds).toJavaDuration())
         }) {
             Text(text = "Add alarm")
         }

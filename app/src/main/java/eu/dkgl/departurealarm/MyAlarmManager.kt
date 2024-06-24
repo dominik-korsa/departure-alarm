@@ -43,7 +43,7 @@ class MyAlarmManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
         )
 
-        val alarmTime = info.departureTime - type.time().toJavaDuration()
+        val alarmTime = info.departureTime - type.timeBeforeDeparture.toJavaDuration()
         val alarmInfo = AlarmManager.AlarmClockInfo(alarmTime.toEpochMilli(), pendingIntent)
         alarmManager.setAlarmClock(alarmInfo, pendingIntent)
     }

@@ -15,11 +15,11 @@ import eu.dkgl.departurealarm.AlarmType
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val type = intent.getStringExtra(EXTRA_TYPE)!!.let { AlarmType.valueOf(it) }
-        vibrate(context)
+        vibrate(context, type.vibrationEffect)
         Toast.makeText(context, "ALARM of type $type went off!!", Toast.LENGTH_LONG).show()
     }
 
-    private fun vibrate(context: Context) {
+    private fun vibrate(context: Context, effect: VibrationEffect) {
         val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
             vibratorManager.defaultVibrator
@@ -28,7 +28,6 @@ class AlarmReceiver : BroadcastReceiver() {
             context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
 
-        val effect = VibrationEffect.createOneShot(100, 255)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             vibrator.vibrate(
                 effect,
