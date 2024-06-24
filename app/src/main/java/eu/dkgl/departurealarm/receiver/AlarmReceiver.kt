@@ -3,6 +3,9 @@ package eu.dkgl.departurealarm.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.VibrationAttributes
 import android.os.VibrationEffect
@@ -16,6 +19,7 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val type = intent.getStringExtra(EXTRA_TYPE)!!.let { AlarmType.valueOf(it) }
         vibrate(context, type.vibrationEffect)
+        playSound(context, type.sound)
         Toast.makeText(context, "ALARM of type $type went off!!", Toast.LENGTH_LONG).show()
     }
 
@@ -36,6 +40,14 @@ class AlarmReceiver : BroadcastReceiver() {
         } else {
             vibrator.vibrate(effect)
         }
+    }
+
+    private fun playSound(context: Context, resourceId: Int) {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val player = MediaPlayer.create(context, resourceId)
+        if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) == 0) return
+        player.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build())
+        player.start()
     }
 
     companion object {

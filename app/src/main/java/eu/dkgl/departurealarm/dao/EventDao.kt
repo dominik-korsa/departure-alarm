@@ -9,10 +9,10 @@ import eu.dkgl.departurealarm.entity.Event
 
 @Dao
 interface EventDao {
-    @Query("SELECT * FROM events")
+    @Query("SELECT * FROM events ORDER BY departureTimeMillis")
     fun getAllLive(): LiveData<List<Event>>
 
-    @Query("SELECT * FROM events")
+    @Query("SELECT * FROM events ORDER BY departureTimeMillis")
     suspend fun getAll(): List<Event>
 
     @Insert
