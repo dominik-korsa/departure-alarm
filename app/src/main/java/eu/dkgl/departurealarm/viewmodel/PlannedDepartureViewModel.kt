@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import eu.dkgl.departurealarm.AlarmManager
 import eu.dkgl.departurealarm.AppDatabase
 import eu.dkgl.departurealarm.dao.PlannedDepartureDao
 import eu.dkgl.departurealarm.entity.PlannedDeparture
@@ -14,7 +15,7 @@ import kotlinx.coroutines.launch
 class PlannedDepartureViewModel(application: Application): AndroidViewModel(application) {
     private val plannedDepartureDao: PlannedDepartureDao =
         AppDatabase.getDatabase(application).plannedDepartureDao()
-    private val plannedDepartureRepository = PlannedDepartureRepository(plannedDepartureDao)
+    private val plannedDepartureRepository = PlannedDepartureRepository(plannedDepartureDao, AlarmManager(application))
 
     val allDepartures: LiveData<List<PlannedDeparture>> = plannedDepartureRepository.all
 

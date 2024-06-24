@@ -19,10 +19,11 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import eu.dkgl.departurealarm.entity.PlannedDeparture
 import eu.dkgl.departurealarm.ui.theme.DepartureAlarmTheme
 import eu.dkgl.departurealarm.viewmodel.PlannedDepartureViewModel
 import java.time.Instant
@@ -35,16 +36,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val plannedDepartureViewModel: PlannedDepartureViewModel by viewModels()
+            val plannedDepartures: List<PlannedDeparture> by plannedDepartureViewModel.allDepartures.observeAsState(initial = emptyList())
             val timePickerState = rememberTimePickerState()
 
             DepartureAlarmTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
                         Column {
+                            Text(text = plannedDepartures.map { it.departureTimeMillis }.joinToString(", "))
                             AlarmPicker(
                                 timePickerState,
+                                plannedDepartureViewModel,
                             )
-                            Text(text = plannedDepartureViewModel.allDepartures.value?.map { it.id }?.joinToString(", ") ?: "?")
                         }
                     }
                 }
@@ -54,30 +57,19 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AlarmPicker(state: TimePickerState) {
-    val context = LocalContext.current
-
+fun AlarmPicker(state: TimePickerState, plannedDepartureViewModel: PlannedDepartureViewModel) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
     ) {
         TimePicker(
             state,
         )
         Button(onClick = {
-            // TODO: This is a bad place for this
-            val alarmList = AlarmList(context)
-            alarmList.createAlarm(Instant.now() + (AlarmType.Prepare.timeBeforeDeparture + 5.seconds).toJavaDuration())
+            val instant = Instant.now() + (AlarmType.Prepare.timeBeforeDeparture + 5.seconds).toJavaDuration()
+            val plannedDeparture = PlannedDeparture(departureTimeMillis = instant.toEpochMilli())
+            plannedDepartureViewModel.insert(plannedDeparture)
         }) {
             Text(text = "Add alarm")
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainPreview() {
-    DepartureAlarmTheme {
-        AlarmPicker(TimePickerState(initialHour = 10, initialMinute = 20, is24Hour = true))
     }
 }

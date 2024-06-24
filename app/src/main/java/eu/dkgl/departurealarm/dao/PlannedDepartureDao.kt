@@ -12,6 +12,9 @@ interface PlannedDepartureDao {
     @Query("SELECT * FROM planned_departures")
     fun getAll(): LiveData<List<PlannedDeparture>>
 
+    @Query("SELECT * FROM planned_departures")
+    suspend fun getAllNow(): List<PlannedDeparture>
+
     @Insert
     suspend fun insert(departure: PlannedDeparture)
 
