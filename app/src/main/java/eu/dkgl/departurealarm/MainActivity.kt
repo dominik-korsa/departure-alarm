@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -62,8 +64,8 @@ class MainActivity : ComponentActivity() {
                         Column {
                             AlarmPicker(eventViewModel)
                             LazyColumn {
-                                items(events) { departure ->
-                                    DepartureItem(departure, onDelete = {
+                                items(events, key = { it.id }) { departure ->
+                                    DepartureItem(modifier = Modifier.animateItemPlacement(), departure, onDelete = {
                                         eventViewModel.delete(departure)
                                     })
                                 }
@@ -97,7 +99,10 @@ fun AlarmPicker(eventViewModel: EventViewModel) {
 
 
 @Composable
-fun DepartureItem(item: Event, onDelete: () -> Unit) {
+fun DepartureItem(
+    modifier: Modifier = Modifier,
+    item: Event, onDelete: () -> Unit
+) {
     val time = Instant.ofEpochMilli(item.departureTimeMillis).atZone(ZoneId.systemDefault())
 
     val deleteAction = SwipeAction(
@@ -107,7 +112,7 @@ fun DepartureItem(item: Event, onDelete: () -> Unit) {
     )
 
     SwipeableActionsBox(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         startActions = listOf(deleteAction),
         endActions = listOf(deleteAction),
     ) {
