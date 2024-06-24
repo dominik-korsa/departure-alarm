@@ -19,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,9 +28,9 @@ import androidx.compose.ui.Modifier
 import eu.dkgl.departurealarm.entity.PlannedDeparture
 import eu.dkgl.departurealarm.ui.theme.DepartureAlarmTheme
 import eu.dkgl.departurealarm.viewmodel.PlannedDepartureViewModel
-import java.time.Instant
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,17 +39,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             val plannedDepartureViewModel: PlannedDepartureViewModel by viewModels()
             val plannedDepartures: List<PlannedDeparture> by plannedDepartureViewModel.allDepartures.observeAsState(initial = emptyList())
-            val timePickerState = rememberTimePickerState()
 
             DepartureAlarmTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
                         Column {
                             Text(text = plannedDepartures.map { it.departureTimeMillis }.joinToString(", "))
-                            AlarmPicker(
-                                timePickerState,
-                                plannedDepartureViewModel,
-                            )
+                            AlarmPicker(plannedDepartureViewModel)
                             LazyColumn {
                                 items(plannedDepartures) { departure ->
                                     DepartureItem(departure, onDelete = {
@@ -67,15 +62,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AlarmPicker(state: TimePickerState, plannedDepartureViewModel: PlannedDepartureViewModel) {
+fun AlarmPicker(plannedDepartureViewModel: PlannedDepartureViewModel) {
+    val timePickerState = rememberTimePickerState()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        TimePicker(
-            state,
-        )
+        TimePicker(timePickerState)
         Button(onClick = {
-            val instant = Instant.now() + (AlarmType.Prepare.timeBeforeDeparture + 5.seconds).toJavaDuration()
+            val localTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+            val instant = localTime.atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()
             val plannedDeparture = PlannedDeparture(departureTimeMillis = instant.toEpochMilli())
             plannedDepartureViewModel.insert(plannedDeparture)
         }) {
