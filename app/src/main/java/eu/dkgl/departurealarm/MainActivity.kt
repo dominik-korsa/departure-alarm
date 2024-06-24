@@ -25,9 +25,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import eu.dkgl.departurealarm.entity.PlannedDeparture
+import eu.dkgl.departurealarm.entity.Event
 import eu.dkgl.departurealarm.ui.theme.DepartureAlarmTheme
-import eu.dkgl.departurealarm.viewmodel.PlannedDepartureViewModel
+import eu.dkgl.departurealarm.viewmodel.EventViewModel
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -37,19 +37,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val plannedDepartureViewModel: PlannedDepartureViewModel by viewModels()
-            val plannedDepartures: List<PlannedDeparture> by plannedDepartureViewModel.allDepartures.observeAsState(initial = emptyList())
+            val eventViewModel: EventViewModel by viewModels()
+            val events: List<Event> by eventViewModel.allDepartures.observeAsState(initial = emptyList())
 
             DepartureAlarmTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(Modifier.padding(innerPadding)) {
                         Column {
-                            Text(text = plannedDepartures.map { it.departureTimeMillis }.joinToString(", "))
-                            AlarmPicker(plannedDepartureViewModel)
+                            Text(text = events.map { it.departureTimeMillis }.joinToString(", "))
+                            AlarmPicker(eventViewModel)
                             LazyColumn {
-                                items(plannedDepartures) { departure ->
+                                items(events) { departure ->
                                     DepartureItem(departure, onDelete = {
-                                        plannedDepartureViewModel.delete(departure)
+                                        eventViewModel.delete(departure)
                                     })
                                 }
                             }
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AlarmPicker(plannedDepartureViewModel: PlannedDepartureViewModel) {
+fun AlarmPicker(eventViewModel: EventViewModel) {
     val timePickerState = rememberTimePickerState()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -71,8 +71,8 @@ fun AlarmPicker(plannedDepartureViewModel: PlannedDepartureViewModel) {
         Button(onClick = {
             val localTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
             val instant = localTime.atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()
-            val plannedDeparture = PlannedDeparture(departureTimeMillis = instant.toEpochMilli())
-            plannedDepartureViewModel.insert(plannedDeparture)
+            val event = Event(departureTimeMillis = instant.toEpochMilli())
+            eventViewModel.insert(event)
         }) {
             Text(text = "Add alarm")
         }
@@ -81,7 +81,7 @@ fun AlarmPicker(plannedDepartureViewModel: PlannedDepartureViewModel) {
 
 
 @Composable
-fun DepartureItem(item: PlannedDeparture, onDelete: () -> Unit) {
+fun DepartureItem(item: Event, onDelete: () -> Unit) {
     Row {
         Text(text = item.departureTimeMillis.toString(10))
         Button(onClick = onDelete) {

@@ -4,12 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import eu.dkgl.departurealarm.dao.PlannedDepartureDao
-import eu.dkgl.departurealarm.entity.PlannedDeparture
+import eu.dkgl.departurealarm.dao.EventDao
+import eu.dkgl.departurealarm.entity.Event
 
-@Database(entities = [PlannedDeparture::class], version = 1)
+@Database(entities = [Event::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun plannedDepartureDao(): PlannedDepartureDao
+    abstract fun eventDao(): EventDao
 
     companion object {
         @Volatile

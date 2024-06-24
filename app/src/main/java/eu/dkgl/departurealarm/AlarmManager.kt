@@ -6,14 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.widget.Toast
-import eu.dkgl.departurealarm.entity.PlannedDeparture
+import eu.dkgl.departurealarm.entity.Event
 import eu.dkgl.departurealarm.receiver.AlarmReceiver
 
 class AlarmManager(private val context: Context) {
 
     private var alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun installAlarms(departures: List<PlannedDeparture>) {
+    fun installAlarms(departures: List<Event>) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             Toast.makeText(context, "Cannot schedule alarms...", Toast.LENGTH_LONG).show()
             return
@@ -25,7 +25,7 @@ class AlarmManager(private val context: Context) {
     }
 
     private fun getIntent(
-        info: PlannedDeparture,
+        info: Event,
         type: AlarmType,
         forDeletion: Boolean
     ): PendingIntent? {
@@ -48,26 +48,26 @@ class AlarmManager(private val context: Context) {
         return pendingIntent
     }
 
-    private fun installAlarmType(info: PlannedDeparture, type: AlarmType) {
+    private fun installAlarmType(info: Event, type: AlarmType) {
         val pendingIntent = getIntent(info, type, false) ?: return
         val alarmTime = info.departureTimeMillis - type.timeBeforeDeparture.inWholeMilliseconds
         val alarmInfo = AlarmManager.AlarmClockInfo(alarmTime, pendingIntent)
         alarmManager.setAlarmClock(alarmInfo, pendingIntent)
     }
 
-    fun installAlarm(info: PlannedDeparture) {
+    fun installAlarm(info: Event) {
         installAlarmType(info, AlarmType.Prepare)
         installAlarmType(info, AlarmType.Whistle)
         installAlarmType(info, AlarmType.Departure)
     }
 
-    private fun uninstallAlarmType(info: PlannedDeparture, type: AlarmType) {
+    private fun uninstallAlarmType(info: Event, type: AlarmType) {
         val pendingIntent = getIntent(info, type, true) ?: return
         alarmManager.cancel(pendingIntent)
         pendingIntent.cancel()
     }
 
-    fun uninstallAlarm(info: PlannedDeparture) {
+    fun uninstallAlarm(info: Event) {
         uninstallAlarmType(info, AlarmType.Prepare)
         uninstallAlarmType(info, AlarmType.Whistle)
         uninstallAlarmType(info, AlarmType.Departure)

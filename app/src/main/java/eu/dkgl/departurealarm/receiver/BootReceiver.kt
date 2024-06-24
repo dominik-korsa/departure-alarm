@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import eu.dkgl.departurealarm.AlarmManager
 import eu.dkgl.departurealarm.AppDatabase
-import eu.dkgl.departurealarm.repository.PlannedDepartureRepository
+import eu.dkgl.departurealarm.repository.EventRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,8 +17,8 @@ class BootReceiver : BroadcastReceiver() {
 
         val alarmManager = AlarmManager(context)
         val database = AppDatabase.getDatabase(context)
-        val plannedDepartureDao = database.plannedDepartureDao()
-        val repository = PlannedDepartureRepository(plannedDepartureDao, alarmManager)
+        val eventDao = database.eventDao()
+        val repository = EventRepository(eventDao, alarmManager)
 
         CoroutineScope(Dispatchers.IO).launch {
             repository.installAll()
