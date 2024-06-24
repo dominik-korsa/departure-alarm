@@ -49,10 +49,6 @@ class MainActivity : ComponentActivity() {
 fun AlarmPicker(state: TimePickerState) {
     val context = LocalContext.current
 
-    // TODO: This is a bad place for this
-    val alarmManager = MyAlarmManager(context)
-    alarmManager.installAlarms()
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
@@ -62,6 +58,9 @@ fun AlarmPicker(state: TimePickerState) {
         )
         Button(onClick = {
             Toast.makeText(context, "Add alarm pressed", Toast.LENGTH_SHORT).show()
+            // TODO: This is a bad place for this
+            val alarmManager = MyAlarmManager(context)
+            alarmManager.installAlarms()
         }) {
             Text(text = "Add alarm")
         }
