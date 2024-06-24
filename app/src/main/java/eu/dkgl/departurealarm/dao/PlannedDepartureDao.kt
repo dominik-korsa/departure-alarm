@@ -10,10 +10,10 @@ import eu.dkgl.departurealarm.entity.PlannedDeparture
 @Dao
 interface PlannedDepartureDao {
     @Query("SELECT * FROM planned_departures")
-    fun getAll(): LiveData<List<PlannedDeparture>>
+    fun getAllLive(): LiveData<List<PlannedDeparture>>
 
     @Query("SELECT * FROM planned_departures")
-    suspend fun getAllNow(): List<PlannedDeparture>
+    suspend fun getAll(): List<PlannedDeparture>
 
     @Insert
     suspend fun insert(departure: PlannedDeparture)

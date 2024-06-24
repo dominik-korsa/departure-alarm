@@ -24,7 +24,11 @@ class AlarmManager(private val context: Context) {
         }
     }
 
-    private fun getIntent(info: PlannedDeparture, type: AlarmType): PendingIntent {
+    private fun getIntent(
+        info: PlannedDeparture,
+        type: AlarmType,
+        forDeletion: Boolean
+    ): PendingIntent? {
         val intentId = (info.id to type).hashCode()
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra(AlarmReceiver.EXTRA_TYPE, type.name)
@@ -34,14 +38,18 @@ class AlarmManager(private val context: Context) {
             context,
             intentId,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
+            if (forDeletion) {
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE
+            } else {
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            }
         )
 
         return pendingIntent
     }
 
     private fun installAlarmType(info: PlannedDeparture, type: AlarmType) {
-        val pendingIntent = getIntent(info, type)
+        val pendingIntent = getIntent(info, type, false) ?: return
         val alarmTime = info.departureTimeMillis - type.timeBeforeDeparture.inWholeMilliseconds
         val alarmInfo = AlarmManager.AlarmClockInfo(alarmTime, pendingIntent)
         alarmManager.setAlarmClock(alarmInfo, pendingIntent)
@@ -53,9 +61,15 @@ class AlarmManager(private val context: Context) {
         installAlarmType(info, AlarmType.Departure)
     }
 
+    private fun uninstallAlarmType(info: PlannedDeparture, type: AlarmType) {
+        val pendingIntent = getIntent(info, type, true) ?: return
+        alarmManager.cancel(pendingIntent)
+        pendingIntent.cancel()
+    }
+
     fun uninstallAlarm(info: PlannedDeparture) {
-        alarmManager.cancel(getIntent(info, AlarmType.Prepare))
-        alarmManager.cancel(getIntent(info, AlarmType.Whistle))
-        alarmManager.cancel(getIntent(info, AlarmType.Departure))
+        uninstallAlarmType(info, AlarmType.Prepare)
+        uninstallAlarmType(info, AlarmType.Whistle)
+        uninstallAlarmType(info, AlarmType.Departure)
     }
 }

@@ -9,15 +9,15 @@ class PlannedDepartureRepository(
     private val dao: PlannedDepartureDao,
     private val alarmManager: AlarmManager,
 ) {
-    val all: LiveData<List<PlannedDeparture>> = dao.getAll()
+    val all: LiveData<List<PlannedDeparture>> = dao.getAllLive()
 
     suspend fun installAll() {
-        alarmManager.installAlarms(dao.getAllNow())
+        alarmManager.installAlarms(dao.getAll())
     }
 
     suspend fun insert(departure: PlannedDeparture) {
-        alarmManager.installAlarm(departure)
         dao.insert(departure)
+        alarmManager.installAlarm(departure)
     }
 
     suspend fun delete(departure: PlannedDeparture) {

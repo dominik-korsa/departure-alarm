@@ -9,8 +9,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -48,6 +51,13 @@ class MainActivity : ComponentActivity() {
                                 timePickerState,
                                 plannedDepartureViewModel,
                             )
+                            LazyColumn {
+                                items(plannedDepartures) { departure ->
+                                    DepartureItem(departure, onDelete = {
+                                        plannedDepartureViewModel.delete(departure)
+                                    })
+                                }
+                            }
                         }
                     }
                 }
@@ -70,6 +80,17 @@ fun AlarmPicker(state: TimePickerState, plannedDepartureViewModel: PlannedDepart
             plannedDepartureViewModel.insert(plannedDeparture)
         }) {
             Text(text = "Add alarm")
+        }
+    }
+}
+
+
+@Composable
+fun DepartureItem(item: PlannedDeparture, onDelete: () -> Unit) {
+    Row {
+        Text(text = item.departureTimeMillis.toString(10))
+        Button(onClick = onDelete) {
+            Text(text = "Delete")
         }
     }
 }
