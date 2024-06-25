@@ -19,12 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.twotone.Delete
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,8 +48,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -85,15 +90,21 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     if (dialogOpen.value) {
-                        AddEventDialog(onDismissRequest = { dialogOpen.value = false })
+                        AddEventDialog(
+                            onDismissRequest = { dialogOpen.value = false }, eventViewModel
+                        )
                     }
 
                     Box(Modifier.padding(innerPadding)) {
                         LazyColumn {
                             items(events, key = { it.id }) { departure ->
-                                DepartureItem(modifier = Modifier.animateItemPlacement(), departure, onDelete = {
-                                    eventViewModel.delete(departure)
-                                })
+                                DepartureItem(
+                                    modifier = Modifier.animateItemPlacement(),
+                                    departure,
+                                    onDelete = {
+                                        eventViewModel.delete(departure)
+                                    }
+                                )
                             }
                         }
                     }
@@ -104,30 +115,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AlarmPicker(eventViewModel: EventViewModel) {
-    val timePickerState = rememberTimePickerState()
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        TimeInput(timePickerState)
-        Button(onClick = {
-            val localTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
-            val instant = localTime.atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()
-            val event = Event(departureTimeMillis = instant.toEpochMilli(), name = "Wieliczka Bogucice po.")
-            eventViewModel.insert(event)
-        }) {
-            Text(text = "Add alarm")
-        }
-    }
-}
-
-
-@Composable
 fun DepartureItem(
-    modifier: Modifier = Modifier,
-    item: Event, onDelete: () -> Unit
+    modifier: Modifier = Modifier, item: Event, onDelete: () -> Unit
 ) {
     val time = Instant.ofEpochMilli(item.departureTimeMillis).atZone(ZoneId.systemDefault())
 
@@ -159,7 +148,7 @@ fun DepartureItem(
 }
 
 @Composable
-fun AddEventDialog(onDismissRequest: () -> Unit) {
+fun AddEventDialog(onDismissRequest: () -> Unit, eventViewModel: EventViewModel) {
     val timePickerState = rememberTimePickerState()
     val name = remember { mutableStateOf("") }
     val useKeyboard = remember { mutableStateOf(false) }
@@ -177,11 +166,20 @@ fun AddEventDialog(onDismissRequest: () -> Unit) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    val focusManager = LocalFocusManager.current
+
                     TextField(
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Stop name") },
                         value = name.value,
                         onValueChange = { name.value = it },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Text,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                        ),
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -200,10 +198,22 @@ fun AddEventDialog(onDismissRequest: () -> Unit) {
                         }
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    TextButton(onClick = { /*TODO*/ }) {
+                    TextButton(onClick = { onDismissRequest() }) {
                         Text("Cancel")
                     }
-                    TextButton(onClick = { /*TODO*/ }) {
+                    TextButton(onClick = {
+                        val localTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                        val instant = localTime
+                            .atDate(LocalDate.now())
+                            .atZone(ZoneId.systemDefault())
+                            .toInstant()
+                        val event = Event(
+                            departureTimeMillis = instant.toEpochMilli(),
+                            name = name.value.trim(),
+                        )
+                        eventViewModel.insert(event)
+                        onDismissRequest()
+                    }) {
                         Text("Add")
                     }
                 }
