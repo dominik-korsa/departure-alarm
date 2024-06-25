@@ -8,6 +8,8 @@ import android.os.Build
 import android.widget.Toast
 import eu.dkgl.departurealarm.entity.Event
 import eu.dkgl.departurealarm.receiver.AlarmReceiver
+import java.time.Instant
+import kotlin.time.toJavaDuration
 
 class AlarmManager(private val context: Context) {
 
@@ -50,8 +52,9 @@ class AlarmManager(private val context: Context) {
 
     private fun installAlarmType(info: Event, type: AlarmType) {
         val pendingIntent = getIntent(info, type, false) ?: return
-        val alarmTime = info.departureTimeMillis - type.timeBeforeDeparture.inWholeMilliseconds
-        val alarmInfo = AlarmManager.AlarmClockInfo(alarmTime, pendingIntent)
+        val alarmTime = Instant.ofEpochMilli(info.departureTimeMillis) - type.timeBeforeDeparture.toJavaDuration()
+        if (alarmTime.isBefore(Instant.now())) return
+        val alarmInfo = AlarmManager.AlarmClockInfo(alarmTime.toEpochMilli(), pendingIntent)
         alarmManager.setAlarmClock(alarmInfo, pendingIntent)
     }
 
