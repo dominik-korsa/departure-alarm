@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import eu.dkgl.departurealarm.dao.EventDao
 import eu.dkgl.departurealarm.entity.Event
 
-@Database(entities = [Event::class], version = 2)
+@Database(entities = [Event::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
 

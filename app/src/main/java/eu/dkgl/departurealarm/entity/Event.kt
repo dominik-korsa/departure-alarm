@@ -8,4 +8,5 @@ import kotlin.random.Random
 data class Event(
     @PrimaryKey(autoGenerate = false) val id: Int = Random.nextInt(),
     val departureTimeMillis: Long,
+    val name: String,
 )
